@@ -9,7 +9,7 @@ venv/
 
 
 /staticfiles/
-/media/
+backend/media/
 
 node_modules/
 dist/

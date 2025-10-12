@@ -1,7 +1,8 @@
 from django.urls import path
-from .views import health, upload_image
+from . import views
 
 urlpatterns = [
-    path('health/', health),
-    path('upload-image/', upload_image),
+    path('health/', views.health, name='health'),
+    path('upload/', views.upload, name='upload'),
+    path('search/', views.search, name='search'),  
 ]
