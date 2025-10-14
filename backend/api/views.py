@@ -5,7 +5,10 @@ from rest_framework.parsers import MultiPartParser, FormParser
 import os
 import numpy as np
 from django.http import JsonResponse
-from tensorflow.keras.applications.mobilenet_v2 import MobileNetV2, preprocess_input
+from tensorflow.keras.applications import MobileNetV3Small
+from tensorflow.keras.applications.mobilenet_v3 import preprocess_input
+from tensorflow.keras.models import Model
+from tensorflow.keras.layers import Dense
 from tensorflow.keras.preprocessing import image as keras_image
 from api.models import Product
 
@@ -30,9 +33,10 @@ def load_model():
     global MODEL_INSTANCE
     if MODEL_INSTANCE is None:
         try:
-            MODEL_INSTANCE = MobileNetV2(weights='imagenet', include_top=False, pooling='avg')
+            base_model = MobileNetV3Small(weights="imagenet", include_top=False, pooling="avg")
+            embedding_layer = Dense(512, activation=None, name="embedding_layer")(base_model.output)
+            MODEL_INSTANCE = Model(inputs=base_model.input, outputs=embedding_layer)
         except Exception as e:
-            print(f"Error loading MobileNetV2 model: {e}")
             raise RuntimeError("ML model is not available.")
 
 def get_embedding(img_path):
@@ -91,7 +95,6 @@ def search(request):
                 'similarity': round(float(sim), 4)
             })
         except Exception as e:
-            print(f"Skipping product {p.name} due to bad embedding: {e}")
             continue
 
     top_results = sorted(similarities, key=lambda x: x['similarity'], reverse=True)[:10]
