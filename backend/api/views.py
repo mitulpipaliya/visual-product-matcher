@@ -4,15 +4,32 @@ from rest_framework.parsers import MultiPartParser, FormParser
 
 import os
 import numpy as np
-from django.http import JsonResponse
-from tensorflow.keras.applications import MobileNetV3Small
-from tensorflow.keras.applications.mobilenet_v3 import preprocess_input
-from tensorflow.keras.models import Model
-from tensorflow.keras.layers import Dense
-from tensorflow.keras.preprocessing import image as keras_image
+import onnxruntime as ort
+from PIL import Image
 from api.models import Product
 
 MODEL_INSTANCE = None
+
+def load_model():
+    global MODEL_INSTANCE
+    if MODEL_INSTANCE is None:
+        model_path = os.path.join(os.path.dirname(__file__), "models", "mobilenetv3small_512.onnx")
+        MODEL_INSTANCE = ort.InferenceSession(model_path, providers=['CPUExecutionProvider'])
+
+def preprocess_image(file_path):
+    img = Image.open(file_path).convert("RGB").resize((224, 224))
+    arr = np.array(img).astype(np.float32)
+    arr = arr / 127.5 - 1.0   
+    arr = np.expand_dims(arr, axis=0)
+    return arr
+
+def get_embedding(img_path):
+    load_model()
+    x = preprocess_image(img_path)
+    features = MODEL_INSTANCE.run(None, {"input": x})[0]
+    features = features.flatten()
+    features = features / np.linalg.norm(features)
+    return features
 
 @api_view(['GET'])
 def health(request):
@@ -29,29 +46,6 @@ def upload(request):
         "filename": image_file.name
     })
 
-def load_model():
-    global MODEL_INSTANCE
-    if MODEL_INSTANCE is None:
-        try:
-            base_model = MobileNetV3Small(weights="imagenet", include_top=False, pooling="avg")
-            embedding_layer = Dense(512, activation=None, name="embedding_layer")(base_model.output)
-            MODEL_INSTANCE = Model(inputs=base_model.input, outputs=embedding_layer)
-        except Exception as e:
-            raise RuntimeError("ML model is not available.")
-
-def get_embedding(img_path):
-    load_model()
-    img = keras_image.load_img(img_path, target_size=(224, 224))
-    x = keras_image.img_to_array(img)
-    x = np.expand_dims(x, axis=0)
-    x = preprocess_input(x)
-    try:
-        features = MODEL_INSTANCE.predict(x, verbose=0)
-    except Exception as e:
-        raise RuntimeError(f"Error during model prediction: {e}")
-    features = features.flatten()
-    features = features / np.linalg.norm(features)
-    return features
 
 @api_view(['POST'])
 @parser_classes([MultiPartParser, FormParser])
@@ -61,40 +55,35 @@ def search(request):
 
     image_file = request.FILES['image']
     temp_dir = os.path.join('media', 'temp')
-    
-    try:
-        os.makedirs(temp_dir, exist_ok=True)
-        temp_path = os.path.join(temp_dir, image_file.name)
+    os.makedirs(temp_dir, exist_ok=True)
+    temp_path = os.path.join(temp_dir, image_file.name)
 
+    try:
         with open(temp_path, 'wb+') as f:
             for chunk in image_file.chunks():
                 f.write(chunk)
 
         query_emb = get_embedding(temp_path)
-        
-    except RuntimeError as e:
-        return JsonResponse({'error': str(e)}, status=500)
     except Exception as e:
-        return JsonResponse({'error': f"Server error during file handling: {e}"}, status=500)
+        return JsonResponse({'error': f'Server error: {e}'}, status=500)
     finally:
         if os.path.exists(temp_path):
             os.remove(temp_path)
 
     products = Product.objects.exclude(embedding__isnull=True)
     similarities = []
-    
+
     for p in products:
         try:
             emb = np.array(p.embedding, dtype=float)
             sim = np.dot(query_emb, emb)
-            
             similarities.append({
                 'name': p.name,
                 'category': p.category,
                 'image_url': p.image.url,
                 'similarity': round(float(sim), 4)
             })
-        except Exception as e:
+        except Exception:
             continue
 
     top_results = sorted(similarities, key=lambda x: x['similarity'], reverse=True)[:10]
