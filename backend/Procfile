@@ -1,1 +1,1 @@
-web: gunicorn matcher.wsgi:application --log-file -
+web: gunicorn matcher.wsgi:application --workers 1 --log-file -
