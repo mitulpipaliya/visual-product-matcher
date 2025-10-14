@@ -10,13 +10,13 @@ from api.models import Product
 
 MEDIA_DIR = os.path.join(os.getcwd(), "media", "products")
 
-MODEL_PATH = os.path.join(os.path.dirname(__file__), "models", "mobilenetv3small_512.onnx")
+MODEL_PATH = os.path.join(os.path.dirname(__file__), "models", "mobilenetv3small.onnx")
 ort_sess = ort.InferenceSession(MODEL_PATH, providers=['CPUExecutionProvider'])
 
 def preprocess_image(img_path):
     img = Image.open(img_path).convert("RGB").resize((224, 224))
     arr = np.array(img).astype(np.float32)
-    arr = arr / 127.5 - 1.0  
+    arr = arr / 127.5 - 1.0
     arr = np.expand_dims(arr, axis=0)
     return arr
 

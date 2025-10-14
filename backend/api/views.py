@@ -13,13 +13,13 @@ MODEL_INSTANCE = None
 def load_model():
     global MODEL_INSTANCE
     if MODEL_INSTANCE is None:
-        model_path = os.path.join(os.path.dirname(__file__), "models", "mobilenetv3small_512.onnx")
+        model_path = os.path.join(os.path.dirname(__file__), "models", "mobilenetv3small.onnx")
         MODEL_INSTANCE = ort.InferenceSession(model_path, providers=['CPUExecutionProvider'])
 
 def preprocess_image(file_path):
     img = Image.open(file_path).convert("RGB").resize((224, 224))
     arr = np.array(img).astype(np.float32)
-    arr = arr / 127.5 - 1.0   
+    arr = arr / 127.5 - 1.0
     arr = np.expand_dims(arr, axis=0)
     return arr
 
@@ -45,7 +45,6 @@ def upload(request):
         "message": "Image received!",
         "filename": image_file.name
     })
-
 
 @api_view(['POST'])
 @parser_classes([MultiPartParser, FormParser])
