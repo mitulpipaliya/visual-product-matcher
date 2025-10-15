@@ -41,9 +41,6 @@ Users can start a search in **two ways**:
 
 Once the image is processed, the model generates a feature vector and performs the similarity search instantly.
 
-📸 *Screenshot:*  
-![Upload or URL Input](assets/upload_or_url.png)
-
 ---
 
 ### 2. Search Results and Filtering
