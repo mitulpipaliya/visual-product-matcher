@@ -1,7 +1,7 @@
 import { useState } from "react";
 import ImageUpload from "./components/ImageUpload";
 
-const BACKEND_URL = "http://127.0.0.1:8000"; 
+const BACKEND_URL = "https://visual-product-matcher-jdlz.onrender.com"; 
 
 function App() {
     const [results, setResults] = useState([]);
