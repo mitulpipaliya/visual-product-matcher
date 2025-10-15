@@ -19,7 +19,6 @@ def load_model():
 def preprocess_image(file_path):
     img = Image.open(file_path).convert("RGB").resize((224, 224))
     arr = np.array(img).astype(np.float32)
-    arr = arr / 127.5 - 1.0
     arr = np.expand_dims(arr, axis=0)
     return arr
 

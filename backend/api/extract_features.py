@@ -16,13 +16,12 @@ ort_sess = ort.InferenceSession(MODEL_PATH, providers=['CPUExecutionProvider'])
 def preprocess_image(img_path):
     img = Image.open(img_path).convert("RGB").resize((224, 224))
     arr = np.array(img).astype(np.float32)
-    arr = arr / 127.5 - 1.0
     arr = np.expand_dims(arr, axis=0)
     return arr
 
 def get_embedding(img_path):
     x = preprocess_image(img_path)
-    features = ort_sess.run(None, {"input": x})[0]
+    features = ort_sess.run(None, {"input": x})[0] 
     features = features.flatten()
     features = features / np.linalg.norm(features)
     return features.tolist()
