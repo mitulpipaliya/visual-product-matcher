@@ -41,6 +41,7 @@ Users can start a search in **two ways**:
 
 Once the image is processed, the model generates a feature vector and performs the similarity search instantly.
 
+![](screenshot/file_and_url.png)
 ---
 
 ### 2. Search Results and Filtering
@@ -53,9 +54,8 @@ A clean and dynamic result interface that:
   - **Similarity Score (in %)**
 - Includes a **range slider** to filter results by similarity threshold (0–100%)
 
-📸 *Screenshot:*  
-![Search Results Screenshot](assets/search_results.png)
-![Filter](assets/filter.png)
+![](screenshot/search.png)
+![](screenshot/filter.png)
 
 ---
 
