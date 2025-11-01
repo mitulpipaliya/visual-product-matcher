@@ -6,6 +6,7 @@
 ---
 
 
+<!-- 
 ## 🌐 Live Application
 
 | Item | Status | URL |
@@ -13,6 +14,7 @@
 | **Live Application URL** | **LIVE** | [https://visual-product-matcher-ui.onrender.com](https://visual-product-matcher-ui.onrender.com) |
 
 ---
+-->
 
 
 ## 🧠 Core Technical Approach
